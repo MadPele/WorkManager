@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+    <form action="" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <h2><center>Are you sure you want to fire "{{ object }}"?</center></h2>
+      <center><input type="submit" value="Fire"></center>
+    </form>
+
+</body>
+</html>

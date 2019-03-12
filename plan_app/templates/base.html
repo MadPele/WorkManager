@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+    {% block login %} Loged as {% endblock %} <br><br>
+    {% block menu %}
+        <a href="{% url 'home' %}">Home</a>&emsp;<a href="{% url 'project-site' %}">Project editor</a>&emsp;
+        <a href="{% url 'employee-site' %}">Employees</a>&emsp;<a href="{% url 'productionline-site' %}">Production lines</a>
+    {% endblock %}<br><br><br><br>
+    {% block title %} Title {% endblock %}<br><br>
+    {% block content %} Pla {% endblock %}<br><br><br><br>
+    {% block footer %} Some footer in future {% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %} <h2><center> Choose project to work with  </center></h2> {% endblock %}
+{% block content %}
+    {% for project in projects %}
+        <a style="text-decoration:none; color:black" href="{% url 'project-details' project.pk %}">{{ project }}</a>
+        &emsp;&emsp;<a href="{% url 'edit-project' project.pk %}">Edit</a> /
+        <a href="{% url 'delete-project' project.pk %}">Delete</a><br>
+    {% endfor %}
+    <br><a href="{% url 'create-project' %}">Add new project</a>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %} <h2><center> Welcome in WorkPlanner </center></h2> {% endblock %}
+{% block content %}
+    Here you have your project in progress
+
+    {% for result in resultSet %}<br>
+        {% for info in result %}<br>
+            {{ info }}
+        {% endfor %}
+    {% endfor %}
+{% endblock %}

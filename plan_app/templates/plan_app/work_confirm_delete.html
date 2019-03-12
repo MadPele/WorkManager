@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+    <form action="" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <h3><center>Are you sure you want to delete task "{{ object }}" from {{ object.project }}?</center></h3>
+      <center><input type="submit" value="Delete"></center>
+    </form>
+
+</body>
+</html>

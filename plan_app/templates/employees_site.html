@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %} <h2><center>Employees</center></h2> {% endblock %}
+{% block content %}
+    {% for employee in employees %}
+        <b>{{ employee }}</b>
+        (Production line: {{ employee.production_line }})
+        &emsp;&emsp;<a href="{% url 'edit-employee' employee.pk %}">Edit</a> /
+        <a href="{% url 'delete-employee' employee.pk %}">Delete</a><br>
+    {% endfor %}
+    <br><a href="{% url 'create-employee' %}">Add new employee</a>
+{% endblock %}

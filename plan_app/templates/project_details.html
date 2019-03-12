@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %} <h2><center> Project details </center></h2> {% endblock %}
+{% block content %}
+    <p align="right"><a href="{% url 'edit-project' project.pk %}">Edit</a> /
+        <a href="{% url 'delete-project' project.pk %}">Delete</a><br></p>
+    <b>Customer:</b> {{ project.customer }}<br>
+    <b>Project number:</b> {{ project.project_number }}<br>
+    <b>Status:</b> {{ project.project_status }}<br>
+    <b>Dead line:</b> {{ project.dead_line }}<br>
+    <b>Quantity:</b> {{ project.quantity }}<br>
+    <b>Progress:</b> {{ progress }}%<br>
+    <b>Estimated hours to complete the project:</b> {{ sum_time }}<br><br>
+    <b>Tasks:</b><br>
+    {% for task in tasks %}
+        &emsp;<b>Tag:</b> {{ task.shortcut }}&emsp;&emsp;<a href="{% url 'edit-work' task.pk %}">Edit</a> /
+            <a href="{% url 'delete-work' task.pk %}">Delete</a><br>
+        &emsp;<b>Description:</b> {{ task.description }}<br>
+        &emsp;<b>Done:</b> {{ task.done}}<br>
+        &emsp;<b>Min for piece:</b> {{ task.efficiency }}<br><br>
+    {% empty %}
+        &emsp;Here is not any task yet<br><br>
+    {% endfor %}
+    <br><a href="{% url 'create-work' %}" style="text-decoration:none">Create new task</a>
+{% endblock %}
