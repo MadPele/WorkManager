@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %} Production line details {% endblock %}
+{% block content %}
+    <p align="right"><a href="{% url 'edit-productionline' pro_line.pk %}">Edit</a> /
+        <a href="{% url 'delete-productionline' pro_line.pk %}">Delete</a></p>
+    <b>Name:</b> {{ pro_line.line_name }}<br>
+    <b>Task:</b> {{ pro_line.work }}<br>
+    <b>Workers:</b><br>
+    {% for worker in workers %}
+        &emsp;{{ worker }}<br>
+    {% empty %}
+        &emsp;This producion line have not workers yet
+    {% endfor %}
+
+{% endblock %}

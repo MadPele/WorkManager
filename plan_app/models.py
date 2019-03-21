@@ -1,5 +1,5 @@
 from django.db import models
-
+from datetime import datetime
 
 STATUS = (
     ('Preparation', 'Preparation'),
@@ -13,7 +13,10 @@ class Projects(models.Model):
         max_length=55,
         verbose_name='Customer'
     )
-    project_number = models.PositiveSmallIntegerField(verbose_name='Project number')
+    project_number = models.PositiveSmallIntegerField(
+        verbose_name='Project number',
+        unique=True
+    )
     dead_line = models.DateField(verbose_name='Dead line')
     quantity = models.PositiveSmallIntegerField(verbose_name='Quantity')
     project_status = models.CharField(
@@ -40,7 +43,7 @@ class Work(models.Model):
         default=0,
         verbose_name='Done'
     )
-    efficiency = models.PositiveSmallIntegerField(
+    efficiency = models.FloatField(
         default=0,
         verbose_name='Min for piece'
     )
@@ -50,7 +53,7 @@ class Work(models.Model):
     )
 
     def __str__(self):
-        return self.shortcut
+        return f'{self.shortcut} - {self.project}'
 
     class Meta:
         verbose_name = 'Work'
@@ -99,6 +102,31 @@ class Employees(models.Model):
         verbose_name_plural = 'Employees'
 
 
+class Raports(models.Model):
+    production_line = models.ForeignKey(
+        ProductionLine,
+        null=True,
+        on_delete=models.SET_NULL
+    )
+    time = models.FloatField(verbose_name='Time')
+    quantity = models.PositiveSmallIntegerField(verbose_name='Made pieces')
+    date = models.DateField(
+        default=datetime.now(),
+        verbose_name='Date'
+    )
+    workers = models.CharField(
+        max_length=100
+    )
+    task = models.CharField(
+        max_length=100
+    )
+
+    def __str__(self):
+        return f'{self.production_line} from {self.date}'
+
+    class Meta:
+        verbose_name = 'Raport'
+        verbose_name_plural = 'Raports'
 
 
 

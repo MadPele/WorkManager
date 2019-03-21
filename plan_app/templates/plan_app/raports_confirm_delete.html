@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %} Edit project {% endblock %}
+{% block title %} Are you sure you want to delete raport "{{ object }}"? {% endblock %}
 {% block content %}
 
     <form action="" method="POST">
         {% csrf_token %}
         {{ form.as_p }}
-        <center><input type="submit" value="Save" /></center>
+        <center><input type="submit" value="Delete" /></center>
     </form>
 
 {% endblock %}

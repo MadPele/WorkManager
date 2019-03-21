@@ -1,8 +1,10 @@
 {% extends 'base.html' %}
-{% block title %} <h2><center> Project details </center></h2> {% endblock %}
+{% block title %} Project details {% endblock %}
 {% block content %}
+    Generate project report as <a href="{% url 'project-raport-pdf' project.pk %}">pdf</a> /
+        <a href="{% url 'project-raport-xlsx' project.pk %}">xlsx</a>
     <p align="right"><a href="{% url 'edit-project' project.pk %}">Edit</a> /
-        <a href="{% url 'delete-project' project.pk %}">Delete</a><br></p>
+        <a href="{% url 'delete-project' project.pk %}">Delete</a></p>
     <b>Customer:</b> {{ project.customer }}<br>
     <b>Project number:</b> {{ project.project_number }}<br>
     <b>Status:</b> {{ project.project_status }}<br>

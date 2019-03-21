@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
-{% block title %} <h2><center>Production lines</center></h2> {% endblock %}
+{% block title %} Production lines {% endblock %}
 {% block content %}
+    <a href="{% url 'create-productionline' %}">Add new production line</a><br><br>
     {% for line in productionlines %}
-        {{ line }}<br>
-
+        <a href="{% url 'productionline-details' line.pk %}" style="text-decoration:none; color:black">{{ line }}</a><br>
     {% endfor %}
-    <br><a href="{% url 'create-productionline' %}">Add new employee</a>
+
 {% endblock %}

@@ -1,17 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %} Add new task to project {% endblock %}
+{% block content %}
 
-    <h2><center>Add new work to project</center></h2><br>
-    <form action="" method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <input type="submit" value="Add">
+    <form action="" method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <center><input type="submit" value="Add" /></center>
     </form>
 
-</body>
-</html>
+{% endblock %}

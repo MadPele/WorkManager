@@ -2,18 +2,50 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Project Manager</title>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.css' %}">
 </head>
-<body>
+<body background="{% static 'back1.jpg' %}" style='background-repeat: no-repeat; background-size: cover'>
 
-    {% block login %} Loged as {% endblock %} <br><br>
-    {% block menu %}
-        <a href="{% url 'home' %}">Home</a>&emsp;<a href="{% url 'project-site' %}">Project editor</a>&emsp;
-        <a href="{% url 'employee-site' %}">Employees</a>&emsp;<a href="{% url 'productionline-site' %}">Production lines</a>
-    {% endblock %}<br><br><br><br>
-    {% block title %} Title {% endblock %}<br><br>
-    {% block content %} Pla {% endblock %}<br><br><br><br>
-    {% block footer %} Some footer in future {% endblock %}
+    <header>
+        <nav class="navbar navbar-dark bg-info mb-5">
+            <a href="{% url 'home' %}" class="navbar-brand active ml-auto">Home</a>
+            <a href="{% url 'project-site' %}" class="navbar-brand ml-4">Projects</a>
+            <a href="{% url 'employee-site' %}" class="navbar-brand ml-4">Employees</a>
+            <a href="{% url 'productionline-site' %}" class="navbar-brand ml-4">Production lines</a>
+            <a href="{% url 'raport-site' %}" class="navbar-brand  ml-4 mr-auto">Raports</a>
+        </nav>
+    </header>
+    <div class="container">
+        <div class="row">
+            <div class="col-6 ml-o pl-0 pb-5t">
+                <small>Loged as {{ logged }}</small>
+            </div>
+            <div class="col-6 text-right mr-0 pr-0 pb-5">
+                <small><a href="{% url 'logout' %}">Logout</a></small>
+            </div>
+            <div class="col-12 mb-5 text-center">
+                <h2>{% block title %} Title {% endblock %}</h2>
+            </div>
+            <div class="col-12 mb-5">
+                {% block content %} Pla {% endblock %}
+            </div>
+            <div class="col-6 ml-o pl-0">
+                <small>Created by Andrzej Derela</small>
+            </div>
+            <div class="col-6 text-right mr-0 pr-0">
+                <small>Today is: {{ date }}</small>
+            </div>
+        </div>
+    </div>
 
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap.js' %}"></script>
 </body>
 </html>
+
+<!--<a href="{% url 'home' %}">Home</a>&emsp;<a href="{% url 'project-site' %}">Projects</a>&emsp;-->
+            <!--<a href="{% url 'employee-site' %}">Employees</a>&emsp;<a href="{% url 'productionline-site' %}">Production lines</a>-->
+            <!--&emsp;<a href="{% url 'raport-site' %}">Raports</a-->

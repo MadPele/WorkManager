@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block title %} Raports {% endblock %}
+{% block content %}
+    <a href="{% url 'create-raport' %}">Add new raport</a><br><br>
+    {% for raport in raports %}
+        <a style="text-decoration:none; color:black" href="{% url 'raport-details' raport.pk %}">{{ raport }}</a><br>
+    {% endfor %}
+{% endblock %}

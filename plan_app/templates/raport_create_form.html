@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %} Edit project {% endblock %}
+{% block title %} Create new raport {% endblock %}
 {% block content %}
 
     <form action="" method="POST">
         {% csrf_token %}
         {{ form.as_p }}
-        <center><input type="submit" value="Save" /></center>
+        <center><input type="submit" value="Create" /></center>
     </form>
 
 {% endblock %}

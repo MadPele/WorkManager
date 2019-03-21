@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Employees, Work, ProductionLine, Projects
+from .models import Employees, Work, ProductionLine, Projects, Raports
 
 
 @admin.register(Employees)
@@ -21,3 +21,7 @@ class ProductionLineAdmin(admin.ModelAdmin):
 class ProjectsAdmin(admin.ModelAdmin):
     pass
 
+
+@admin.register(Raports)
+class RaportsAdmin(admin.ModelAdmin):
+    pass
