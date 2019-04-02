@@ -6,8 +6,8 @@ from django.urls import reverse
 from django.shortcuts import render, redirect
 from django.views import View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
-from .models import Projects, ProductionLine, Work, Employees, Raports
-from .forms import RaportForm, LoginForm
+from .models import Projects, Work, Employees, Raports, WorkerProductivity, Expenses
+from .forms import RaportForm, LoginForm, ExpenseForm
 from datetime import datetime, date
 from django.http import HttpResponse
 from reportlab.lib.pagesizes import A4
@@ -43,7 +43,7 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
     login_url = '/login'
 
     model = Projects
-    fields = '__all__'
+    fields = ['customer', 'project_number', 'dead_line', 'quantity', 'project_status']
 
     def get_success_url(self):
 
@@ -64,21 +64,12 @@ class WorkCreateView(LoginRequiredMixin, CreateView):
     login_url = '/login'
 
     model = Work
-    fields = '__all__'
+    fields = ['shortcut', 'description', 'efficiency', 'project']
 
     def get_success_url(self):
 
         task = self.object
         return reverse('project-details', kwargs={'pk': task.project.id})
-
-
-class ProductionLineCreateView(LoginRequiredMixin, CreateView):
-    """Create new production line"""
-    login_url = '/login'
-
-    model = ProductionLine
-    fields = '__all__'
-    success_url = '/productionlinesite'
 
 
 class ProjectSiteView(LoginRequiredMixin, View):
@@ -97,20 +88,52 @@ class ProjectDetailsView(LoginRequiredMixin, View):
     def get(self, request, pk):
         project = Projects.objects.get(pk=pk)
         tasks = Work.objects.filter(project__pk=pk)
+
+        wp = WorkerProductivity.objects.filter(task__project__id=project.id)
+
         if tasks:
             sum_progress = 0
             sum_time = 0
             for work in tasks:
                 sum_time += (project.quantity-work.done)*work.efficiency
-                sum_progress += work.done
+                if work.done > project.quantity:
+                    sum_progress += project.quantity
+                else:
+                    sum_progress += work.done
             sum_progress = (sum_progress/(project.quantity*tasks.count()))*100
             sum_progress = round(sum_progress, 2)
             sum_time = round(sum_time/60, 2)
         else:
             sum_progress = 0
             sum_time = 'Unknown'
+
+        now = date.today()
+        dead_line = project.dead_line
+        delta_days = (dead_line-now).days
+        alert_color = ''
+
+        if delta_days > 14 and sum_progress < 100:
+            alert_color = 'green'
+        elif delta_days <= 14 and delta_days > 7 and sum_progress < 100:
+            alert_color = 'orange'
+        elif delta_days <= 7 and sum_progress < 100:
+            alert_color = 'red'
+        else:
+            alert_color = 'black'
+        if project.project_status != 'In progress':
+            alert_color = 'black'
+
         return render(request, 'project_details.html', {'project': project, 'tasks': tasks, 'progress': sum_progress,
-                                                        'sum_time': sum_time})
+                                            'sum_time': sum_time, 'alert_color': alert_color, 'wp': wp})
+
+
+class ProjectDailyReports(View):
+    """Show all daily reports for project"""
+
+    def get(self, request, pk):
+        project = Projects.objects.get(pk=pk)
+        reports = Raports.objects.filter(task__project__pk=pk).order_by('-date')
+        return render(request, 'project_daily_reports.html', {'reports': reports, 'project': project})
 
 
 class ProjectDeleteView(LoginRequiredMixin, DeleteView):
@@ -181,54 +204,13 @@ class WorkEditView(LoginRequiredMixin, UpdateView):
     login_url = '/login'
 
     model = Work
-    fields = '__all__'
+    fields = ['shortcut', 'description', 'done', 'project']
     template_name_suffix = '_update_form'
 
     def get_success_url(self):
 
         task = self.object
         return reverse('project-details', kwargs={'pk': task.project.id})
-
-
-class ProductionLineSiteView(LoginRequiredMixin, View):
-    """Show all of production lines"""
-
-    def get(self, request):
-        productionlines = ProductionLine.objects.all().order_by('line_name')
-        return render(request, 'productionline_site.html', {'productionlines': productionlines})
-
-
-class ProductionLineDetailsView(LoginRequiredMixin, View):
-    """Show details of chosen production line"""
-    login_url = '/login'
-
-    def get(self, request, pk):
-        pro_line = ProductionLine.objects.get(pk=pk)
-        workers = Employees.objects.filter(production_line__pk=pk).order_by('name')
-        return render(request, 'productionline_details.html', {'pro_line': pro_line, 'workers': workers})
-
-
-class ProductionLineEditView(LoginRequiredMixin, UpdateView):
-    """Edit production line"""
-    login_url = '/login'
-
-    model = ProductionLine
-    fields = '__all__'
-    template_name_suffix = '_update_form'
-
-    def get_success_url(self):
-        """Move to site with details of checged production line"""
-
-        pro_line = self.object
-        return reverse('productionline-details', kwargs={'pk': pro_line.pk})
-
-
-class ProductionLineDeleteView(LoginRequiredMixin, DeleteView):
-    """Delete production line"""
-    login_url = '/login'
-
-    model = ProductionLine
-    success_url = '/productionlinesite'
 
 
 class RaportCreateView(LoginRequiredMixin, View):
@@ -244,28 +226,40 @@ class RaportCreateView(LoginRequiredMixin, View):
         """Save raport and update data in project task"""
         form = RaportForm(request.POST)
         if form.is_valid():
-            production_line = form.cleaned_data.get('production_line')
             time = form.cleaned_data.get('time')
             quantity = form.cleaned_data.get('quantity')
             date = form.cleaned_data.get('date')
-            workers = Employees.objects.filter(production_line_id=production_line.pk).order_by('name')
-            workerss = ''
-            for worker in workers:
-                workerss += f'{worker.name} {worker.surname}, '
-            workerss = workerss[0:-2]
-            task = production_line.work
+            worker = form.cleaned_data.get('worker')
+            task = form.cleaned_data.get('task')
 
-            raport = Raports.objects.create(production_line=production_line, time=time, quantity=quantity, date=date,
-                                            workers=workerss, task=task)
-            work = production_line.work
-            print(work.done)
-            if work.done == 0:
-                work.efficiency = (time*60)/quantity
-                work.done += quantity
+            raport = Raports.objects.create(time=time, quantity=quantity, date=date,
+                                            worker=worker, task=task)
+
+            project = Projects.objects.get(pk=task.project.pk)
+            project.cost += (time*worker.salary)
+            project.save()
+
+
+            if task.done == 0:
+                task.efficiency = round((time*60)/quantity, 2)
+                task.done += quantity
             else:
-                work.efficiency = ((work.efficiency*work.done)+(time*60))/(work.done+quantity)
-                work.done += quantity
-            work.save()
+                task.efficiency = round(((task.efficiency*task.done)+(time*60))/(task.done+quantity), 2)
+                task.done += quantity
+            task.save()
+
+            filterargs = {'task': task, 'worker': worker}
+            if WorkerProductivity.objects.filter(**filterargs):
+                worker_prod = WorkerProductivity.objects.get(**filterargs)
+                worker_prod.time = worker_prod.time + time
+                worker_prod.quantity += quantity
+                worker_prod.average_productivity = worker_prod.quantity/worker_prod.time
+                worker_prod.save()
+                print(worker_prod.quantity/worker_prod.time)
+            else:
+                average_productivity = quantity / time
+                WorkerProductivity.objects.create(worker=worker, time=time, quantity=quantity, task=task,
+                                                       average_productivity=average_productivity)
 
             return redirect('raport-details', pk=raport.pk)
         else:
@@ -298,10 +292,11 @@ class RaportDeleteView(LoginRequiredMixin, DeleteView):
     success_url = '/raportsite'
 
 
-class CreateProjectRaportPDF(View):
+class CreateProjectRaportPDF(LoginRequiredMixin, View):
+    """Create project raport in pdf"""
+    login_url = '/login'
 
     def get(self, request, pk):
-        """Create project raport in .pdf"""
 
         project = Projects.objects.get(pk=pk)
         tasks = Work.objects.filter(project__pk=pk)
@@ -352,37 +347,45 @@ class CreateProjectRaportPDF(View):
         cont.append(Spacer(1, 5))
         text = f"<b>Estimated hours to complete the project:</b> {sum_time}"
         cont.append(Paragraph(text, styles["Normal"]))
+        cont.append(Spacer(1, 5))
+        text = f"<b>Current project cost:</b> {project.cost}zl"
+        cont.append(Paragraph(text, styles["Normal"]))
         cont.append(Spacer(1, 10))
         text = f"<b>Tasks:</b>"
         cont.append(Paragraph(text, styles["Normal"]))
         cont.append(Spacer(1, 5))
-        for task in tasks:
-            text = f"<b>Tag:</b> {task.shortcut}"
-            cont.append(Paragraph(text, styles["task"]))
-            cont.append(Spacer(1, 5))
-            text = f"<b>Description:</b> {task.description}"
-            cont.append(Paragraph(text, styles["task"]))
-            cont.append(Spacer(1, 5))
-            text = f"<b>Done:</b> {task.done}"
-            cont.append(Paragraph(text, styles["task"]))
-            cont.append(Spacer(1, 5))
-            text = f"<b>Min for piece:</b> {task.efficiency}"
+        if tasks:
+            for task in tasks:
+                text = f"<b>Tag:</b> {task.shortcut}"
+                cont.append(Paragraph(text, styles["task"]))
+                cont.append(Spacer(1, 5))
+                text = f"<b>Description:</b> {task.description}"
+                cont.append(Paragraph(text, styles["task"]))
+                cont.append(Spacer(1, 5))
+                text = f"<b>Done:</b> {task.done}"
+                cont.append(Paragraph(text, styles["task"]))
+                cont.append(Spacer(1, 5))
+                text = f"<b>Min for piece:</b> {task.efficiency}"
+                cont.append(Paragraph(text, styles["task"]))
+                cont.append(Spacer(1, 15))
+        else:
+            text = "Here is no any task yet"
             cont.append(Paragraph(text, styles["task"]))
             cont.append(Spacer(1, 15))
-        text = f"Report was generated on {date.today()} by ProjectManager"
+        text = f"Report was generated on {date.today()} by Project Manager"
         cont.append(Paragraph(text, styles["end"]))
         cont.append(Spacer(1, 10))
 
         doc.build(cont)
 
-        return render(request, 'project_details.html', {'project': project, 'tasks': tasks, 'progress': sum_progress,
-                                                        'sum_time': sum_time})
+        return redirect('project-details', pk=project.pk)
 
 
-class CreateProjectRaportXLSX(View):
+class CreateProjectRaportXLSX(LoginRequiredMixin, View):
+    """Create project report in xlsx"""
+    login_url = '/login'
 
     def get(self, request, pk):
-        """Create project report in xlsx"""
 
         project = Projects.objects.get(pk=pk)
         tasks = Work.objects.filter(project__pk=pk)
@@ -402,53 +405,64 @@ class CreateProjectRaportXLSX(View):
         reports = xlsxwriter.Workbook(f'{project}.xlsx')
         report = reports.add_worksheet()
         report.set_column(0, 2, width=15)
+        bold = reports.add_format({'bold': True})
+        big_size = reports.add_format({'bold': True, 'font_size': 15, 'align': 'center', 'valign': 'vcenter'})
+        report.merge_range(0, 1, 1, 2, f"Project nr.{project.project_number}", big_size)
 
-        row = 3
+
+        row = 4
         col = 0
 
-        report.write(1, 1, f"Project nr.{project.project_number} report")
-        report.write(row, col, 'Customer:')
+        report.write(row, col, 'Customer:', bold)
         report.write(row, col + 1, f'{project.customer}')
         row += 1
-        report.write(row, col, 'Project number:')
+        report.write(row, col, 'Project number:', bold)
         report.write(row, col + 1, f'{project.project_number}')
         row += 1
-        report.write(row, col, 'Status:')
+        report.write(row, col, 'Status:', bold)
         report.write(row, col + 1, f'{project.project_status}')
         row += 1
-        report.write(row, col, 'Dead line:')
+        report.write(row, col, 'Dead line:', bold)
         report.write(row, col + 1, f'{project.dead_line}')
         row += 1
-        report.write(row, col, 'Quantity:')
+        report.write(row, col, 'Quantity:', bold)
         report.write(row, col + 1, f'{project.quantity}')
         row += 1
-        report.write(row, col, 'Progress:')
+        report.write(row, col, 'Progress:', bold)
         report.write(row, col + 1, f'{sum_progress}%')
         row += 1
-        report.write(row, col, 'Hours work left:')
+        report.write(row, col, 'Hours work left:', bold)
         report.write(row, col + 1, f'{sum_time}')
-        row += 2
-        report.write(row, col, 'Tasks:')
         row += 1
-        for task in tasks:
-            report.write(row, col + 1, 'Tag:')
-            report.write(row, col + 2, f'{task.shortcut}')
-            row += 1
-            report.write(row, col + 1, 'Description:')
-            report.write(row, col + 2, f'{task.description}')
-            row += 1
-            report.write(row, col + 1, 'Done:')
-            report.write(row, col + 2, f'{task.done}')
-            row += 1
-            report.write(row, col + 1, 'Min for piece:')
-            report.write(row, col + 2, f'{task.efficiency}')
-            row += 2
+        report.write(row, col, 'Project cost:', bold)
+        report.write(row, col + 1, f'{project.cost}zł')
+        row += 2
+        report.write(row, col, 'Tasks:', bold)
+        row += 1
+        if tasks:
+            for task in tasks:
+                report.write(row, col + 1, 'Tag:', bold)
+                report.write(row, col + 2, f'{task.shortcut}')
+                row += 1
+                report.write(row, col + 1, 'Description:', bold)
+                report.write(row, col + 2, f'{task.description}')
+                row += 1
+                report.write(row, col + 1, 'Done:', bold)
+                report.write(row, col + 2, f'{task.done}')
+                row += 1
+                report.write(row, col + 1, 'Min for piece:', bold)
+                report.write(row, col + 2, f'{task.efficiency}')
+                row += 2
+        else:
+            report.merge_range(14, 1, 14, 2, 'Here is no any task yet')
+            row += 3
 
+        low_size = reports.add_format({'font_size': 8, 'align': 'center'})
+        report.merge_range(row + 1, 0, row + 1, 2, f"Report was generated on {date.today()} by Project Manager", low_size)
 
         reports.close()
 
-        return render(request, 'project_details.html', {'project': project, 'tasks': tasks, 'progress': sum_progress,
-                                                        'sum_time': sum_time})
+        return redirect('project-details', pk=project.pk)
 
 
 class LoginView(View):
@@ -480,3 +494,38 @@ def logout_view(request):
 
     logout(request)
     return redirect('login')
+
+
+class CreateExpenseView(LoginRequiredMixin, View):
+    """Add expense to project"""
+    login_url = '/login'
+
+    def get(self, request, project_pk):
+        project = Projects.objects.get(pk=project_pk)
+        form = ExpenseForm()
+        return render(request, 'create_expense.html', {'form': form, 'project': project})
+
+    def post(self, request, project_pk):
+        project = Projects.objects.get(pk=project_pk)
+        form = ExpenseForm(request.POST)
+        if form.is_valid():
+            description = form.cleaned_data.get('description')
+            quantity = form.cleaned_data.get('quantity')
+            price = form.cleaned_data.get('price')
+            Expenses.objects.create(description=description, quantity=quantity, price=price, project=project)
+            project.cost += (quantity*price)
+            project.save()
+            return redirect('project-details', pk=project_pk)
+        else:
+            return render(request, 'create_expense.html', {'form': form})
+
+
+class ShowProjectExpensesView(LoginRequiredMixin, View):
+    """Show all expenses for chosen project"""
+    login_url = '/login'
+
+    def get(self, request, project_pk):
+        project = Projects.objects.get(pk=project_pk)
+        expenses = Expenses.objects.filter(project__pk=project_pk)
+        return render(request, 'show_project_expenses.html', {'expenses': expenses, 'project': project})
+

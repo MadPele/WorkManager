@@ -1,15 +1,19 @@
 from django import forms
-from .models import ProductionLine
+from .models import Employees, Work
 
 
 class RaportForm(forms.Form):
-    production_line = forms.ModelChoiceField(
-        queryset=ProductionLine.objects.all(),
-        label='Production line'
+    worker = forms.ModelChoiceField(
+        queryset=Employees.objects.all(),
+        label='Worker'
+    )
+    task = forms.ModelChoiceField(
+        queryset=Work.objects.all(),
+        label='Task'
     )
     time = forms.FloatField(
         min_value=0.25,
-        label='Time'
+        label='Time(h)'
     )
     quantity = forms.FloatField(
         min_value=1,
@@ -26,3 +30,12 @@ class LoginForm(forms.Form):
     password = forms.CharField(
         widget=forms.PasswordInput
     )
+
+
+class ExpenseForm(forms.Form):
+    description = forms.CharField(
+        max_length=255,
+        label='Description'
+    )
+    quantity = forms.IntegerField(label='Quantity')
+    price = forms.FloatField(label='Price for piece')

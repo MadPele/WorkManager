@@ -13,8 +13,9 @@ class Projects(models.Model):
         max_length=55,
         verbose_name='Customer'
     )
-    project_number = models.PositiveSmallIntegerField(
+    project_number = models.CharField(
         verbose_name='Project number',
+        max_length=33,
         unique=True
     )
     dead_line = models.DateField(verbose_name='Dead line')
@@ -24,6 +25,10 @@ class Projects(models.Model):
         max_length=12,
         default='Preparation'
     )
+    cost = models.PositiveIntegerField(
+        verbose_name='Global project cost',
+        default=0
+    )
 
     def __str__(self):
         return f'{self.customer} nr.{self.project_number}'
@@ -31,6 +36,56 @@ class Projects(models.Model):
     class Meta:
         verbose_name = 'Project'
         verbose_name_plural = 'Projects'
+
+
+class Employees(models.Model):
+    name = models.CharField(
+        max_length=55,
+        verbose_name='Name'
+    )
+    surname = models.CharField(
+        max_length=55,
+        verbose_name='Surname'
+    )
+    salary = models.PositiveSmallIntegerField(
+        verbose_name='Salary(zł/h)'
+    )
+
+    def __str__(self):
+        return f'{self.name} {self.surname}'
+
+    class Meta:
+        verbose_name = 'Employee'
+        verbose_name_plural = 'Employees'
+
+
+class WorkerProductivity(models.Model):
+    worker = models.ForeignKey(
+        Employees,
+        null=True,
+        on_delete=models.SET_NULL
+    )
+    task = models.ForeignKey(
+        'Work',
+        null=True,
+        on_delete=models.SET_NULL
+    )
+    time = models.PositiveSmallIntegerField(
+        verbose_name='Time in hours'
+    )
+    quantity = models.PositiveSmallIntegerField(
+        verbose_name='Made pieces'
+    )
+    average_productivity = models.FloatField(
+        verbose_name='Average productivity'
+    )
+
+    def __str__(self):
+        return f'{self.worker} {self.task} productivity'
+
+    class Meta:
+        verbose_name = 'Worker productivity'
+        verbose_name_plural = 'Workers productivity'
 
 
 class Work(models.Model):
@@ -51,6 +106,12 @@ class Work(models.Model):
         Projects,
         on_delete=models.CASCADE
     )
+    worker_productivity = models.ForeignKey(
+        WorkerProductivity,
+        null=True,
+        on_delete=models.SET_NULL
+    )
+    cost = models.IntegerField
 
     def __str__(self):
         return f'{self.shortcut} - {self.project}'
@@ -60,51 +121,9 @@ class Work(models.Model):
         verbose_name_plural = 'Works'
 
 
-class ProductionLine(models.Model):
-    line_name = models.CharField(
-        max_length=55,
-        verbose_name='Line name'
-    )
-    work = models.ForeignKey(
-        Work,
-        null=True,
-        on_delete=models.SET_NULL
-    )
-
-    def __str__(self):
-        return self.line_name
-
-    class Meta:
-        verbose_name = 'Production line'
-        verbose_name_plural = 'Production lines'
-
-
-class Employees(models.Model):
-    name = models.CharField(
-        max_length=55,
-        verbose_name='Name'
-    )
-    surname = models.CharField(
-        max_length=55,
-        verbose_name='Surname'
-    )
-    production_line = models.ForeignKey(
-        ProductionLine,
-        null=True,
-        on_delete=models.SET_NULL
-    )
-
-    def __str__(self):
-        return f'{self.name} {self.surname}'
-
-    class Meta:
-        verbose_name = 'Employee'
-        verbose_name_plural = 'Employees'
-
-
 class Raports(models.Model):
-    production_line = models.ForeignKey(
-        ProductionLine,
+    worker = models.ForeignKey(
+        Employees,
         null=True,
         on_delete=models.SET_NULL
     )
@@ -114,19 +133,39 @@ class Raports(models.Model):
         default=datetime.now(),
         verbose_name='Date'
     )
-    workers = models.CharField(
-        max_length=100
-    )
-    task = models.CharField(
-        max_length=100
+    task = models.ForeignKey(
+        Work,
+        null=True,
+        on_delete=models.SET_NULL
     )
 
     def __str__(self):
-        return f'{self.production_line} from {self.date}'
+        return f'{self.worker} - {self.task.shortcut} {self.date}'
 
     class Meta:
         verbose_name = 'Raport'
         verbose_name_plural = 'Raports'
+
+
+class Expenses(models.Model):
+    description = models.CharField(
+        max_length=255,
+        verbose_name='Expenses'
+    )
+    quantity = models.PositiveIntegerField(verbose_name='Quantity')
+    price = models.FloatField(verbose_name='Price for piece')
+    project = models.ForeignKey(
+        Projects,
+        null=True,
+        on_delete=models.SET_NULL
+    )
+
+    def __str__(self):
+        return f'Expense: {self.description}'
+
+    class Meta:
+        verbose_name = 'Expense'
+        verbose_name_plural = 'Expenses'
 
 
 

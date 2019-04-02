@@ -1,26 +1,80 @@
 {% extends 'base.html' %}
+{% block header %} <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script> {% endblock %}
 {% block title %} Project details {% endblock %}
 {% block content %}
     Generate project report as <a href="{% url 'project-raport-pdf' project.pk %}">pdf</a> /
         <a href="{% url 'project-raport-xlsx' project.pk %}">xlsx</a>
     <p align="right"><a href="{% url 'edit-project' project.pk %}">Edit</a> /
-        <a href="{% url 'delete-project' project.pk %}">Delete</a></p>
+        <a href="{% url 'delete-project' project.pk %}">Delete</a> project</p>
+    <a href="{% url 'project-daily-raports' project.pk %}" style="text-decorations: none">Show</a> all reports for this
+        project<br><br>
     <b>Customer:</b> {{ project.customer }}<br>
     <b>Project number:</b> {{ project.project_number }}<br>
     <b>Status:</b> {{ project.project_status }}<br>
-    <b>Dead line:</b> {{ project.dead_line }}<br>
+    <b>Dead line:</b> <span style="color: {{ alert_color }}">{{ project.dead_line }}</span><br>
     <b>Quantity:</b> {{ project.quantity }}<br>
     <b>Progress:</b> {{ progress }}%<br>
-    <b>Estimated hours to complete the project:</b> {{ sum_time }}<br><br>
+    <b>Estimated hours to complete the project:</b> {{ sum_time }}<br>
+    <b>Current project cost:</b> {{ project.cost }}zł
+    <p align="right"><a href="{% url 'create-expense' project.pk %}">Add</a> expense<br>
+        <a href="{% url 'project-expenses' project.pk %}">Show</a> all expenses</p>
     <b>Tasks:</b><br>
     {% for task in tasks %}
-        &emsp;<b>Tag:</b> {{ task.shortcut }}&emsp;&emsp;<a href="{% url 'edit-work' task.pk %}">Edit</a> /
+        <div class="task>">&emsp;<b>Tag:</b> {{ task.shortcut }}&emsp;&emsp;<a href="{% url 'edit-work' task.pk %}">Edit</a> /
             <a href="{% url 'delete-work' task.pk %}">Delete</a><br>
-        &emsp;<b>Description:</b> {{ task.description }}<br>
-        &emsp;<b>Done:</b> {{ task.done}}<br>
-        &emsp;<b>Min for piece:</b> {{ task.efficiency }}<br><br>
+            &emsp;<b>Description:</b> {{ task.description }}<br>
+            &emsp;<b>Done:</b> {{ task.done}} / {{ project.quantity }}<br>
+            &emsp;<b>Min for piece:</b> {{ task.efficiency }}<br>
+            {% if task.done > 0 %}<canvas id="task{{ task.id }}Chart"></canvas>{% endif %}
+        </div>
+
+        <br><br>
     {% empty %}
         &emsp;Here is not any task yet<br><br>
     {% endfor %}
-    <br><a href="{% url 'create-work' %}" style="text-decoration:none">Create new task</a>
+    <a href="{% url 'create-work' %}" style="text-decoration:none">Create</a> new task
+
+    <canvas id="myChart" width="100" height="100"></canvas>
+    <script>
+    {% for task in tasks %}
+    var ctx = document.getElementById('task{{ task.id }}Chart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [{% for lab in wp %}{% if lab.task.id == task.id %}'{{ lab.worker }}',{% endif %}{% endfor %}],
+            datasets: [{
+                label: 'Productivity',
+                data: [{% for data in wp %}{% if data.task.id == task.id %}{{ data.average_productivity }},{% endif %}{% endfor %} ],
+                backgroundColor: 'rgba(255, 206, 86, 0.6)',
+                borderWidth: 1,
+                borderColor: 'black',
+                hoverBorderWidth: 2,
+                hoverBorderColor: 'green',
+            }]
+        },
+        options: {
+            title:{
+                display: true,
+                text: 'Productivity of employees',
+                fontSize: 20
+            },
+            scales: {
+                yAxes: [{
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Pieces per hour'
+                                },
+                    ticks: {
+                        beginAtZero: true
+                            }
+                        }],
+            },
+             legend:{
+                display: false
+             },
+                }
+            });
+    {% endfor %}
+    </script>
 {% endblock %}
+

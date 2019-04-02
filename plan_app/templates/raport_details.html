@@ -1,11 +1,8 @@
 {% extends 'base.html' %}
-{% block title %} Raport {{ raport }} details {% endblock %}
+{% block title %} Report {{ raport }} details {% endblock %}
 {% block content %}
     <p align="right"><a href="{% url 'delete-raport' raport.pk %}">Delete</a></p>
-    <b>Porduction line:</b> {{ raport.production_line }}<br>
-    {% if workers %}
-       <b>Workers:</b> {{ raport.workers }}<br>
-    {% endif %}
+    <b>Worker:</b> {{ raport.worker }}<br>
     <b>Task:</b> {{ raport.task }}<br>
     <b>Time:</b> {{ raport.time }}h<br>
     <b>Quantity:</b> {{ raport.quantity }}<br>

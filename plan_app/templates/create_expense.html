@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %} Are you sure you want to delete report "{{ object }}"? {% endblock %}
+{% block title %} Add new expense to {{ project }} {% endblock %}
 {% block content %}
 
     <form action="" method="POST">
         {% csrf_token %}
         {{ form.as_p }}
-        <center><input type="submit" value="Delete" /></center>
+        <center><input type="submit" value="Add" /></center>
     </form>
 
 {% endblock %}

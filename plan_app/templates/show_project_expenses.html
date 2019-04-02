@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %} Expenses for {{ project }} {% endblock %}
+{% block content %}
+    {% for expense in expenses %}
+        <b>Desciption:</b> {{ expense.description }}<br>
+        <b>Quantity:</b> {{ expense.quantity }}<br>
+        <b>Price for piece:</b> {{ expense.price }}zł<br>
+        {% if expense.quantity > 1 %}<span id="cost{{ expense.id }}"></span><br>{% endif %}<br>
+    {% endfor %}
+
+    <a href="{% url 'project-details' project.pk %}">Back</a> to project details
+
+    {% for expense in expenses %}
+    <script>
+    var cost = {{ expense.quantity }}*{{ expense.price }}
+        document.getElementById('cost{{ expense.id }}').innerHTML = "<b>Total cost:</b> "+ cost+'zł'
+    </script>
+    {% endfor %}
+{% endblock %}tml>

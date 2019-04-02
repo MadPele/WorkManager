@@ -1,11 +1,31 @@
 {% extends 'base.html' %}
 {% block title %} Employees {% endblock %}
 {% block content %}
+    <div align="right">
+            <input type="text" name="searched" id="searched" placeholder="Search employee...">
+    </div>
     <a href="{% url 'create-employee' %}">Add new employee</a><br><br>
     {% for employee in employees %}
-        <b>{{ employee }}</b>
-        (Production line: {{ employee.production_line }})
+        <span><b>{{ employee }}</b>
         &emsp;&emsp;<a href="{% url 'edit-employee' employee.pk %}">Edit</a> /
-        <a href="{% url 'delete-employee' employee.pk %}">Delete</a><br>
+        <a href="{% url 'delete-employee' employee.pk %}">Delete</a><br></span>
     {% endfor %}
+
+    <script>
+        var searchBar = document.getElementById('searched')
+        var reports = document.getElementById('report')
+        searchBar = document.addEventListener('keyup', function(event){
+            var searching = event.target.value.toLowerCase()
+            $('span').toArray().forEach(function(employee){
+                var title = employee.firstElementChild.textContent
+                if(title.toLowerCase().indexOf(searching) != -1){
+                    employee.style.display = 'inline'
+                }
+                else{
+                    employee.style.display = 'none'
+                }
+            })
+            console.log(searching)
+        })
+    </script>
 {% endblock %}

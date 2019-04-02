@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %} {{ project }} daily reports {% endblock %}
+{% block content %}
+    {% for report in reports %}
+    <b>Worker:</b> {{ report.worker }}<br>
+    <b>Task:</b> {{ report.task }}<br>
+    <b>Time:</b> {{ report.time }}h<br>
+    <b>Quantity:</b> {{ report.quantity }}<br>
+    <b>Date:</b> {{ report.date }}<br><br>
+    {% empty %}
+        <b>This project has no report yet</b><br><br>
+    {% endfor %}
+    <br><a href="{% url 'project-details' project.pk %}">Back</a> to project details.
+{% endblock %}

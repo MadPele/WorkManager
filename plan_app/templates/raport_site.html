@@ -1,8 +1,29 @@
 {% extends 'base.html' %}
-{% block title %} Raports {% endblock %}
+{% block title %} Reports {% endblock %}
 {% block content %}
-    <a href="{% url 'create-raport' %}">Add new raport</a><br><br>
+    <div align="right">
+            <input type="text" name="searched" id="searched" placeholder="Search report...">
+    </div>
+    <a href="{% url 'create-raport' %}">Add new report</a><br><br>
     {% for raport in raports %}
-        <a style="text-decoration:none; color:black" href="{% url 'raport-details' raport.pk %}">{{ raport }}</a><br>
+        <span><a style="text-decoration:none; color:black" href="{% url 'raport-details' raport.pk %}">{{ raport }}</a></span><br>
     {% endfor %}
+
+    <script>
+        var searchBar = document.getElementById('searched')
+        var reports = document.getElementById('report')
+        searchBar = document.addEventListener('keyup', function(event){
+            var searching = event.target.value.toLowerCase()
+            $('span').toArray().forEach(function(report){
+                var title = report.firstElementChild.textContent
+                if(title.toLowerCase().indexOf(searching) != -1){
+                    report.style.display = 'inline'
+                }
+                else{
+                    report.style.display = 'none'
+                }
+            })
+            console.log(searching)
+        })
+    </script>
 {% endblock %}
