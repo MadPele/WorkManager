@@ -4,5 +4,5 @@ Add project, add task, hire employee and look how your projects going on and mor
 
 Tools/technologies used:
 -Python (Django)
--Bootstramp
+-Bootstrap
 -JavaScript (Chart.js, jQuery)
