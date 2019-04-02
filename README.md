@@ -6,3 +6,5 @@ Tools/technologies used:
 -Python (Django)
 -Bootstrap
 -JavaScript (Chart.js, jQuery)
+-XlsxWriter
+-reportlab
