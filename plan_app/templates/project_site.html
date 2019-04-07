@@ -10,7 +10,7 @@
     <br><br>
     <a href="{% url 'create-project' %}">Add new project</a><br><br>
     {% for project in projects %}
-<span><a style="text-decoration:none; color:black" href="{% url 'project-details' project.pk %}">{{ project }} - <b id="status">{{ project.project_status }}</b></a><br></span>
+<p><a style="text-decoration:none; color:black" href="{% url 'project-details' project.pk %}">{{ project }} - <b id="status">{{ project.project_status }}</b></a><br></p>
     {% endfor %}
 
     <script>
@@ -32,7 +32,7 @@
            });
 
 
-            $('span').toArray().forEach(function(project){
+            $('p').toArray().forEach(function(project){
                 var title = project.firstElementChild.textContent
                 var status = $(project).find('#status').text();
 
@@ -45,7 +45,7 @@
                 }
 
                 if(title.toLowerCase().indexOf(searching) != -1 && show_item){
-                    project.style.display = 'inline'
+                    project.style.display = 'block'
                 }
                 else{
                     project.style.display = 'none'

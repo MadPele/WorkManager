@@ -6,7 +6,7 @@
     </div>
     <a href="{% url 'create-raport' %}">Add new report</a><br><br>
     {% for raport in raports %}
-        <span><a style="text-decoration:none; color:black" href="{% url 'raport-details' raport.pk %}">{{ raport }}</a></span><br>
+        <p><a style="text-decoration:none; color:black" href="{% url 'raport-details' raport.pk %}">{{ raport }}</a></p>
     {% endfor %}
 
     <script>
@@ -14,16 +14,15 @@
         var reports = document.getElementById('report')
         searchBar = document.addEventListener('keyup', function(event){
             var searching = event.target.value.toLowerCase()
-            $('span').toArray().forEach(function(report){
+            $('p').toArray().forEach(function(report){
                 var title = report.firstElementChild.textContent
                 if(title.toLowerCase().indexOf(searching) != -1){
-                    report.style.display = 'inline'
+                    report.style.display = 'block'
                 }
                 else{
                     report.style.display = 'none'
                 }
             })
-            console.log(searching)
         })
     </script>
 {% endblock %}

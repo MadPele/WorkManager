@@ -6,9 +6,9 @@
     </div>
     <a href="{% url 'create-employee' %}">Add new employee</a><br><br>
     {% for employee in employees %}
-        <span><b>{{ employee }}</b>
+        <p><b>{{ employee }}</b>
         &emsp;&emsp;<a href="{% url 'edit-employee' employee.pk %}">Edit</a> /
-        <a href="{% url 'delete-employee' employee.pk %}">Delete</a><br></span>
+        <a href="{% url 'delete-employee' employee.pk %}">Delete</a></p>
     {% endfor %}
 
     <script>
@@ -16,10 +16,10 @@
         var reports = document.getElementById('report')
         searchBar = document.addEventListener('keyup', function(event){
             var searching = event.target.value.toLowerCase()
-            $('span').toArray().forEach(function(employee){
+            $('p').toArray().forEach(function(employee){
                 var title = employee.firstElementChild.textContent
                 if(title.toLowerCase().indexOf(searching) != -1){
-                    employee.style.display = 'inline'
+                    employee.style.display = 'block'
                 }
                 else{
                     employee.style.display = 'none'
