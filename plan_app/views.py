@@ -239,7 +239,6 @@ class RaportCreateView(LoginRequiredMixin, View):
             project.cost += (time*worker.salary)
             project.save()
 
-
             if task.done == 0:
                 task.efficiency = round((time*60)/quantity, 2)
                 task.done += quantity
@@ -255,7 +254,6 @@ class RaportCreateView(LoginRequiredMixin, View):
                 worker_prod.quantity += quantity
                 worker_prod.average_productivity = worker_prod.quantity/worker_prod.time
                 worker_prod.save()
-                print(worker_prod.quantity/worker_prod.time)
             else:
                 average_productivity = quantity / time
                 WorkerProductivity.objects.create(worker=worker, time=time, quantity=quantity, task=task,
@@ -284,12 +282,41 @@ class RaportDetailsView(LoginRequiredMixin, View):
         return render(request, 'raport_details.html', {'raport': raport})
 
 
-class RaportDeleteView(LoginRequiredMixin, DeleteView):
+class RaportDeleteView(LoginRequiredMixin, View):
     """Delete raport"""
     login_url = '/login'
 
-    model = Raports
-    success_url = '/raportsite'
+    def get(self, request, report_pk):
+        report = Raports.objects.get(pk=report_pk)
+        task = Work.objects.get(pk=report.task.pk)
+        project = Projects.objects.get(pk=task.project.pk)
+
+        project.cost -= (report.time * report.worker.salary)
+        project.save()
+
+        if task.done == report.quantity:
+            task.done = 0
+            task.efficiency = 0
+            task.save()
+        else:
+            time = (task.efficiency*task.done)/60
+            task.efficiency = ((time - report.time)*60) / (task.done - report.quantity)
+            task.done -= report.quantity
+            task.save()
+
+        filterargs = {'task': report.task, 'worker': report.worker}
+        worker_prod = WorkerProductivity.objects.get(**filterargs)
+        if worker_prod.quantity == report.quantity:
+            worker_prod.delete()
+        else:
+            worker_prod.quantity -= report.quantity
+            worker_prod.time -= report.time
+            worker_prod.average_productivity = worker_prod.quantity / worker_prod.time
+            worker_prod.save()
+
+        report.delete()
+
+        return redirect('raport-site')
 
 
 class CreateProjectRaportPDF(LoginRequiredMixin, View):
